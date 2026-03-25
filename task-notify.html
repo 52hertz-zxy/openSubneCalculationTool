@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>任务通知</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
+        font-size: 13px;
+        user-select: none;
+        overflow: hidden;
+        border-radius: 10px;
+      }
+      html[data-theme="light"] {
+        color-scheme: light;
+      }
+      html[data-theme="dark"] {
+        color-scheme: dark;
+      }
+      .wrap {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      html[data-theme="dark"] .wrap {
+        background: linear-gradient(160deg, #1a2744 0%, #0f1729 100%);
+        color: #e8f0ff;
+        border: 1px solid rgba(100, 160, 255, 0.35);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      }
+      html[data-theme="light"] .wrap {
+        background: linear-gradient(165deg, #ffffff 0%, #eef3fb 100%);
+        color: #152238;
+        border: 1px solid rgba(47, 126, 219, 0.4);
+        box-shadow: 0 12px 36px rgba(18, 34, 66, 0.12);
+      }
+      html[data-theme="dark"] .wrap--err {
+        border-color: rgba(248, 113, 113, 0.45);
+        background: linear-gradient(160deg, #3b1c24 0%, #1a0f12 100%);
+      }
+      html[data-theme="light"] .wrap--err {
+        border-color: rgba(220, 38, 38, 0.45);
+        background: linear-gradient(165deg, #fff1f2 0%, #ffe4e6 100%);
+        color: #7f1d1d;
+      }
+      .head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 10px 4px;
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .close {
+        cursor: pointer;
+        opacity: 0.65;
+        font-size: 18px;
+        line-height: 1;
+        padding: 0 4px;
+        border: none;
+        background: transparent;
+        color: inherit;
+      }
+      .close:hover {
+        opacity: 1;
+      }
+      .body {
+        flex: 1;
+        padding: 4px 12px 10px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 12px;
+        opacity: 0.95;
+      }
+      .foot {
+        padding: 0 12px 8px;
+        font-size: 11px;
+        opacity: 0.55;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" class="wrap" role="button" tabindex="0" aria-label="点击查看主窗口">
+      <div class="head">
+        <span id="t"></span>
+        <button type="button" class="close" id="x" title="关闭">×</button>
+      </div>
+      <div class="body" id="m"></div>
+      <div class="foot">点击此卡片打开工具并定位到对应页面</div>
+    </div>
+    <script>
+      const root = document.getElementById("root");
+      const t = document.getElementById("t");
+      const m = document.getElementById("m");
+      const x = document.getElementById("x");
+      function apply(p) {
+        if (!p) return;
+        const th = p.theme === "light" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", th);
+        t.textContent = p.title || "提示";
+        m.textContent = p.message || "";
+        root.classList.toggle("wrap--err", p.variant === "error");
+      }
+      window.taskNotifyView.onPayload(apply);
+      root.addEventListener("click", (e) => {
+        if (e.target === x) return;
+        window.taskNotifyView.activate();
+      });
+      x.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.taskNotifyView.dismiss();
+      });
+    </script>
+  </body>
+</html>

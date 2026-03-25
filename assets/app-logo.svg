@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="appLogoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f"/>
+      <stop offset="100%" style="stop-color:#0d1b2a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#appLogoBg)"/>
+  <circle cx="20" cy="24" r="5" fill="#4ea1ff"/>
+  <circle cx="44" cy="24" r="5" fill="#4ea1ff"/>
+  <circle cx="32" cy="44" r="5" fill="#9fd0ff"/>
+  <path d="M20 24 L44 24 M32 29 L32 39" stroke="#4ea1ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M20 24 Q32 34 44 24" stroke="rgba(78,161,255,0.45)" stroke-width="1.8" fill="none"/>
+  <path d="M48 12 L54 18" stroke="#7ec8ff" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+</svg>

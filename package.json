@@ -1,0 +1,55 @@
+{
+  "name": "subnecalculationtool",
+  "version": "1.0.0",
+  "description": "子网计算工具（IPv4/IPv6）绿色版 - Electron 桌面端",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build:icon": "node scripts/build-windows-icon.mjs",
+    "dist": "node scripts/build-windows-icon.mjs && electron-builder --win --x64 --config.win.signAndEditExecutable=false && node scripts/write-dist-run-hint.mjs",
+    "dist:web": "node scripts/pack-web-zip.mjs"
+  },
+  "build": {
+    "appId": "com.subnecalculationtool",
+    "productName": "SubneCalculationTool",
+    "compression": "maximum",
+    "electronLanguages": [
+      "en-US"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "icon": "build/icon.ico",
+    "files": [
+      "build/icon.ico",
+      "assets/**/*",
+      "main.js",
+      "preload.js",
+      "task-notify.html",
+      "task-notify-preload.js",
+      "index.html",
+      "styles.css",
+      "netcalc.js",
+      "ip_geo_db.js",
+      "app.js",
+      "README.md",
+      "node_modules/iconv-lite/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "signAndEditExecutable": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^41.0.3",
+    "electron-builder": "^26.8.1",
+    "sharp": "^0.34.5",
+    "to-ico": "^1.1.2"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.6.3"
+  }
+}

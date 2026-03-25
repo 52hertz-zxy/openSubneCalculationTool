@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>子网计算工具（IPv4/IPv6）</title>
+    <link rel="icon" href="./assets/app-logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20260321" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="header-brand">
+        <img class="app-logo" src="./assets/app-logo.svg" width="40" height="40" alt="" decoding="async" />
+        <div class="title">
+          <div class="title-main">子网计算工具</div>
+          <div class="title-sub">IPv4/IPv6 计算与子网规划（离线可用）</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div id="menuButtonsTemplate" class="menu-buttons" aria-label="顶部菜单"></div>
+      </div>
+    </header>
+
+    <div class="disclaimer-wrap">
+      <div class="app-disclaimer" role="note" aria-label="免责声明">
+        <span class="app-disclaimer-badge">免责声明</span>
+        <p class="app-disclaimer-text">
+          本工具仅供学习交流与在<strong>合法授权</strong>范围内的网络规划、运维使用。使用者须遵守法律法规及目标网络策略；对<strong>群 Ping、端口扫描、路由追踪</strong>等探测，仅可在已获授权的环境中操作。因使用本工具产生的任何后果由使用者自行承担，开发者不承担相关责任。
+        </p>
+      </div>
+    </div>
+
+    <main class="container">
+      <nav id="tabsTemplate" class="tabs" aria-label="功能区"></nav>
+
+      <section id="tab-ipv4-core" class="tab-panel is-active">
+        <h2 class="panel-title">IPv4 核心计算</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field field-ipv4-oct-compact">
+              <label>IPv4 输入（四段式 + 掩码双显联动）</label>
+              <div class="row ipv4-oct-row" style="justify-content:flex-start;align-items:flex-start;flex-wrap:wrap;gap:4px 6px;">
+                <span class="oct-with-hint"><input id="ipv4Oct1" class="text-input ipv4-oct-input" type="text" inputmode="numeric" maxlength="3" placeholder="192" style="width:80px;height:50px;min-height:50px;max-height:50px;box-sizing:border-box;" /><div class="oct-smart-hint hint smart-correct-hint" aria-live="polite"></div></span>
+                <span class="oct-sep">.</span>
+                <span class="oct-with-hint"><input id="ipv4Oct2" class="text-input ipv4-oct-input" type="text" inputmode="numeric" maxlength="3" placeholder="168" style="width:80px;height:50px;min-height:50px;max-height:50px;box-sizing:border-box;" /><div class="oct-smart-hint hint smart-correct-hint" aria-live="polite"></div></span>
+                <span class="oct-sep">.</span>
+                <span class="oct-with-hint"><input id="ipv4Oct3" class="text-input ipv4-oct-input" type="text" inputmode="numeric" maxlength="3" placeholder="1" style="width:80px;height:50px;min-height:50px;max-height:50px;box-sizing:border-box;" /><div class="oct-smart-hint hint smart-correct-hint" aria-live="polite"></div></span>
+                <span class="oct-sep">.</span>
+                <span class="oct-with-hint"><input id="ipv4Oct4" class="text-input ipv4-oct-input" type="text" inputmode="numeric" maxlength="3" placeholder="10" style="width:80px;height:50px;min-height:50px;max-height:50px;box-sizing:border-box;" /><div class="oct-smart-hint hint smart-correct-hint" aria-live="polite"></div></span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="ipv4PrefixInput">CIDR 前缀（/xx）</label>
+              <input id="ipv4PrefixInput" class="text-input" type="number" min="0" max="32" step="1" value="24" />
+            </div>
+            <div class="field">
+              <label for="ipv4MaskInput">点分十进制掩码</label>
+              <span class="mask-with-hint" style="display:block;max-width:100%;">
+                <input id="ipv4MaskInput" class="text-input" type="text" value="255.255.255.0" />
+                <div class="mask-smart-hint hint smart-correct-hint" aria-live="polite"></div>
+              </span>
+            </div>
+            <div class="field">
+              <label for="ipv4PrefixSlider">前缀滑块（0-32）</label>
+              <input id="ipv4PrefixSlider" type="range" min="0" max="32" step="1" value="24" />
+            </div>
+            <div class="field">
+              <label for="ipv4PrefixSelect">常用前缀快捷选择</label>
+              <select id="ipv4PrefixSelect" class="select">
+                <option value="24">/24</option><option value="25">/25</option><option value="26">/26</option><option value="27">/27</option><option value="28">/28</option>
+                <option value="29">/29</option><option value="30">/30</option><option value="31">/31</option><option value="32">/32</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ipv4HostNeedRecommend">按需推荐掩码（输入主机数）</label>
+              <input id="ipv4HostNeedRecommend" class="text-input" type="number" min="1" step="1" placeholder="例如 70" />
+              <div id="ipv4RecommendHint" class="hint"></div>
+            </div>
+            <div class="field">
+              <label for="ipv4Input">组合结果（自动生成）</label>
+              <input id="ipv4Input" class="text-input" type="text" readonly />
+              <div id="ipv4Error" class="error"></div>
+              <div id="ipv4CidrSmartHint" class="hint smart-correct-hint" style="min-height:0;"></div>
+            </div>
+
+            <div class="row">
+              <label class="checkbox">
+                <input id="ipv4SubtractNB" type="checkbox" checked />
+                扣除网络地址/广播地址（常规主机数）
+              </label>
+            </div>
+
+            <div id="ipv4MainActions" class="actions"></div>
+
+            <div class="divider"></div>
+
+            <h3 class="sub-title">反向计算增强</h3>
+            <div class="field">
+              <label for="ipv4ReverseMode">选择反向模式</label>
+              <select id="ipv4ReverseMode" class="select">
+                <option value="hosts">模式一：输入网段 + 期望主机数</option>
+                <option value="subnets">模式二：输入网段 + 期望子网数</option>
+              </select>
+            </div>
+            <div id="ipv4ReverseExtraHosts" class="field">
+              <label for="ipv4ReverseInput">期望主机数</label>
+              <input id="ipv4ReverseInput" class="text-input" type="number" min="1" step="1" value="50" />
+              <div class="hint">将自动推算最优 CIDR 前缀，并给出建议子网参数。</div>
+            </div>
+            <div id="ipv4ReverseExtraSubnets" class="field" style="display: none;">
+              <label for="ipv4ReverseInput2">期望子网数</label>
+              <input id="ipv4ReverseInput2" class="text-input" type="number" min="1" step="1" value="8" />
+              <div class="hint">将自动推算最适配的划分前缀，并生成初步划分方案。</div>
+            </div>
+
+            <div class="field">
+              <label for="ipv4ReverseStrategy">策略选择</label>
+              <select id="ipv4ReverseStrategy" class="select">
+                <option value="best">最优划分（利用率最高）</option>
+                <option value="notOvershoot">不超网（严格在父网段内）</option>
+                <option value="notWaste">不浪费（最小冗余）</option>
+              </select>
+            </div>
+            <div id="ipv4ReverseActions" class="actions"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="sub-title">输出（完整网络三元组 + 关键参数高亮）</h3>
+            <div id="ipv4Output" class="output"></div>
+            <div class="hint">
+              高亮显示：<span class="hl">网络地址</span>、<span class="hl">掩码/CIDR</span>、<span class="hl">广播地址</span>、<span class="hl">可用主机范围</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-ipv6-core" class="tab-panel">
+        <h2 class="panel-title">IPv6 基础计算</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field">
+              <label for="ipv6Input">输入（IPv6 地址 + Prefix length）</label>
+              <input id="ipv6Input" class="text-input" type="text" placeholder="例如：2001:db8::1" />
+              <div id="ipv6AddrSmartHint" class="hint smart-correct-hint" style="min-height:0;"></div>
+            </div>
+            <div class="field">
+              <label for="ipv6PrefixInput">Prefix length（/xx）</label>
+              <input id="ipv6PrefixInput" class="text-input" type="number" min="0" max="128" step="1" value="64" />
+              <div id="ipv6PrefixSmartHint" class="hint smart-correct-hint" style="min-height:0;"></div>
+            </div>
+            <div id="ipv6Error" class="error"></div>
+            <div class="field">
+              <label for="ipv6PrefixSlider">前缀滑块（0-128）</label>
+              <input id="ipv6PrefixSlider" type="range" min="0" max="128" step="1" value="64" />
+            </div>
+            <div class="field">
+              <label for="ipv6PrefixSelect">常用前缀快捷选择</label>
+              <select id="ipv6PrefixSelect" class="select">
+                <option value="48">/48</option>
+                <option value="56">/56</option>
+                <option value="64" selected>/64</option>
+                <option value="96">/96</option>
+                <option value="112">/112</option>
+                <option value="128">/128</option>
+              </select>
+            </div>
+            <div class="row">
+              <label class="checkbox">
+                <input id="ipv6ShowExpanded" type="checkbox" checked />
+                展开显示（8 组）
+              </label>
+            </div>
+            <div id="ipv6MainActions" class="actions"></div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title">输出（网络前缀/接口ID/地址类型）</h3>
+            <div id="ipv6Output" class="output"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-ipv6-plan" class="tab-panel">
+        <h2 class="panel-title">IPv6 子网规划（VLSM / 等长）</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="sub-title">父网段（IPv6 CIDR）</h3>
+            <div class="field">
+              <label for="ipv6PlanParent">例如 2001:db8::/48</label>
+              <input id="ipv6PlanParent" class="text-input" type="text" placeholder="2001:db8::/48" value="2001:db8::/48" />
+              <div id="ipv6PlanParentSmartHint" class="hint smart-correct-hint" style="min-height:0;"></div>
+              <div id="ipv6PlanError" class="error"></div>
+            </div>
+            <h3 class="sub-title" style="margin-top:14px;">按地址需求做 VLSM</h3>
+            <p class="hint" style="margin:0 0 8px;">
+              每行需求表示该子网内需要容纳的<strong>地址数量</strong>（按 2 的幂对齐块，类似 IPv4 主机数思路）；输出子网前缀、首末地址与接口 ID 位数说明。
+            </p>
+            <div class="field">
+              <label for="ipv6VlsmStrategy">分配策略</label>
+              <select id="ipv6VlsmStrategy" class="select">
+                <option value="maxFirst">最大优先（降序）</option>
+                <option value="minFirst">最小优先（升序）</option>
+                <option value="fixedMask">固定掩码（等长，忽略各行数值差异）</option>
+                <option value="bestFit">按需匹配（最小浪费）</option>
+                <option value="sequential">顺序分配</option>
+                <option value="balanced">平衡（保留大空闲块）</option>
+              </select>
+            </div>
+            <div class="vlsm-form">
+              <div class="vlsm-row">
+                <label for="ipv6VlsmName">子网名称</label>
+                <input id="ipv6VlsmName" class="text-input" type="text" placeholder="如：Dept-A" value="Subnet-1" />
+              </div>
+              <div class="vlsm-row">
+                <label for="ipv6VlsmInterfaces">所需地址数</label>
+                <input id="ipv6VlsmInterfaces" class="text-input" type="number" min="1" step="1" value="256" />
+              </div>
+              <div class="vlsm-actions">
+                <button id="ipv6VlsmAddBtn" class="primary" type="button">添加需求</button>
+              </div>
+            </div>
+            <div id="ipv6VlsmTableWrap" class="table-wrap"></div>
+            <div id="ipv6VlsmMainActions" class="actions"></div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title">VLSM 规划结果</h3>
+            <div id="ipv6VlsmOutput" class="output vlsm-output"></div>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:14px;">
+          <div class="card">
+            <h3 class="sub-title">等长子网划分</h3>
+            <p class="hint" style="margin:0 0 8px;">使用上方同一父网段，将空间均分为指定数量的子网（前缀自动加长）。</p>
+            <div class="field">
+              <label for="ipv6EqualCount">子网数量</label>
+              <input id="ipv6EqualCount" class="text-input" type="number" min="1" step="1" value="8" />
+            </div>
+            <div class="row">
+              <label class="checkbox">
+                <input id="ipv6EqualExpanded" type="checkbox" />
+                输出使用展开地址（8 组）
+              </label>
+            </div>
+            <div id="ipv6EqualMainActions" class="actions"></div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title">等长划分结果</h3>
+            <div id="ipv6EqualOutput" class="output"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-equal" class="tab-panel">
+        <h2 class="panel-title">等长子网划分</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field field-ipv4-oct-compact">
+              <label>父网段（IPv4 四段 + 掩码联动）</label>
+              <div id="equalIPv4Template"></div>
+            </div>
+            <div class="field">
+              <label for="equalCount">需划分子网数量</label>
+              <input id="equalCount" class="text-input" type="number" min="1" step="1" value="4" />
+            </div>
+            <div class="field">
+              <label for="equalStartNo">子网编号起始值</label>
+              <input id="equalStartNo" class="text-input" type="number" min="1" step="1" value="1" />
+            </div>
+            <div class="row">
+              <label class="checkbox">
+                <input id="equalSubtractNB" type="checkbox" checked />
+                显示可用主机范围（扣除网络/广播）
+              </label>
+            </div>
+            <div id="equalMainActions" class="actions"></div>
+            <div class="hint" id="equalPreviewHint"></div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title">划分结果</h3>
+            <div id="equalOutput" class="output"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-vlsm" class="tab-panel">
+        <h2 class="panel-title">VLSM（可变长子网掩码）规划</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field field-ipv4-oct-compact">
+              <label>父网段（IPv4 四段 + 掩码联动）</label>
+              <div id="vlsmIPv4Template"></div>
+            </div>
+            <div class="field">
+              <label for="vlsmStrategy">分配策略</label>
+              <select id="vlsmStrategy" class="select">
+                <option value="maxFirst">1. 最大优先（MaxFirst / 降序）</option>
+                <option value="minFirst">2. 最小优先（MinFirst / 升序）</option>
+                <option value="fixedMask">3. 固定掩码（Fixed Mask / 等长）</option>
+                <option value="bestFit">4. 按需匹配（Best Fit / 最小浪费）</option>
+                <option value="sequential">5. 顺序分配（Sequential / 先来先得）</option>
+                <option value="balanced">6. 平衡分配（Balanced / 保留大块）</option>
+                <option value="aggregation">7. CIDR 聚合导向（Aggregation-Oriented）</option>
+                <option value="defrag">8. 碎片整理导向（Defragmentation-Oriented）</option>
+                <option value="order">附：顺序分配（按添加顺序，等同 sequential）</option>
+              </select>
+            </div>
+            <div class="row">
+              <label class="checkbox">
+                <input id="vlsmSubtractNB" type="checkbox" checked />
+                扣除网络/广播（用于主机数计算）
+              </label>
+            </div>
+            <div class="divider"></div>
+            <h3 class="sub-title">子网需求列表</h3>
+
+            <div class="vlsm-form">
+              <div class="vlsm-row">
+                <label>子网名称</label>
+                <input id="vlsmName" class="text-input" type="text" placeholder="如：Office-1" value="Subnet-1" />
+              </div>
+              <div class="vlsm-row">
+                <label>期望主机数</label>
+                <input id="vlsmHosts" class="text-input" type="number" min="1" step="1" value="50" />
+              </div>
+              <div class="vlsm-actions">
+                <button id="vlsmAddBtn" class="primary">添加子网</button>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div id="vlsmTableWrap" class="table-wrap"></div>
+            <div id="vlsmMainActions" class="actions"></div>
+            <div class="hint" id="vlsmHint"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="sub-title">VLSM 拓扑清单</h3>
+            <div id="vlsmOutput" class="output"></div>
+            <div class="hint">
+              若检测到地址重叠/超网，将给出错误原因与修正建议。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-aggregate" class="tab-panel">
+        <h2 class="panel-title">超网汇总（CIDR Aggregation）</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field">
+              <label for="aggInput">输入网段列表（每行一个，支持 IPv4 CIDR，如 192.168.1.0/24）</label>
+              <textarea id="aggInput" class="textarea" rows="10" placeholder="例如：
+192.168.1.0/25
+192.168.1.128/25"></textarea>
+              <div id="aggError" class="error"></div>
+            </div>
+            <div id="aggMainActions" class="actions"></div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title">对比展示</h3>
+            <div id="aggOutput" class="output"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-conflict" class="tab-panel">
+        <h2 class="panel-title">地址检查与诊断（冲突/包含/重叠）</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field">
+              <label for="conflictInput">输入网段列表（IPv4/IPv6，CIDR 或单地址可自动按 /32-/128 处理）</label>
+              <textarea id="conflictInput" class="textarea" rows="12" placeholder="例如：
+192.168.1.0/24
+192.168.1.128/25
+2001:db8::/48"></textarea>
+              <div id="conflictError" class="error"></div>
+            </div>
+            <div id="conflictMainActions" class="actions"></div>
+            <div class="hint">
+              输出关系：完全重叠、部分重叠、包含关系。
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title">报告</h3>
+            <div id="conflictOutput" class="output"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-ping" class="tab-panel">
+        <h2 class="panel-title">群 Ping 检测</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field field-ipv4-oct-compact">
+              <label>IPv4 输入（四段式 + 掩码双显联动）</label>
+              <div id="pingIPv4Template"></div>
+            </div>
+            <div class="field">
+              <label for="batchPingTimeout">超时（毫秒）</label>
+              <input id="batchPingTimeout" class="text-input" type="number" min="200" max="10000" step="100" value="1200" />
+            </div>
+            <div id="pingMainActions" class="actions"></div>
+            <div class="hint">状态颜色：<span class="ping-ok">可达（绿色）</span>，<span class="ping-fail">不可达（红色）</span>。</div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title sub-title-row">
+              <span>群 Ping 结果</span>
+              <span id="pingSummary" class="ping-summary"></span>
+            </h3>
+            <div class="ping-heatmap-panel">
+              <div class="sub-title-row ping-heat-title-row">
+                <span class="sub-title" style="margin:0;">网段延迟分布（色块）</span>
+                <div class="row ping-heat-nb-row" style="margin:0; gap:14px;">
+                  <label class="checkbox">
+                    <input id="pingShowNetwork" type="checkbox" />
+                    显示网络地址
+                  </label>
+                  <label class="checkbox">
+                    <input id="pingShowBroadcast" type="checkbox" />
+                    显示广播地址
+                  </label>
+                </div>
+              </div>
+              <div class="ping-heat-legend-toolbar">
+                <div id="pingHeatmapLegendHost" class="ping-heat-legend-host"></div>
+                <div class="field ping-heat-status-field">
+                  <label for="pingStatusFilter">状态筛选</label>
+                  <select id="pingStatusFilter" class="select">
+                    <option value="all">全部</option>
+                    <option value="ok">仅可达（绿色）</option>
+                    <option value="fail">仅不可达（红色）</option>
+                  </select>
+                </div>
+              </div>
+              <div id="pingOutput" class="output ping-heat-grid-host"></div>
+            </div>
+            <div id="pingTableHost" class="output"></div>
+            <div class="row" style="justify-content:space-between; margin-top:8px;">
+              <div class="row" style="margin:0;">
+                <label for="pingPageSize" style="margin:0;">每页</label>
+                <select id="pingPageSize" class="select" style="max-width:120px;">
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+              <div class="row" style="margin:0;">
+                <button id="pingPrevPageBtn" class="mini-btn" type="button">上一页</button>
+                <span id="pingPageInfo" class="hint" style="margin:0;">第 1 / 1 页</span>
+                <button id="pingNextPageBtn" class="mini-btn" type="button">下一页</button>
+              </div>
+            </div>
+            <div id="pingError" class="error"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-portscan" class="tab-panel">
+        <h2 class="panel-title">端口扫描</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field field-ipv4-oct-compact">
+              <label>目标 IPv4 网段（四段式 + 掩码双显联动，与群 Ping 相同）</label>
+              <div id="portScanIPv4Template"></div>
+            </div>
+            <div class="field">
+              <label for="portScanPorts">端口列表（逗号或空格分隔，最多 32 个）</label>
+              <input id="portScanPorts" class="text-input" type="text" placeholder="例如：80,443,22,3389" value="80,443,22" />
+            </div>
+            <div class="field">
+              <label for="portScanTimeout">TCP 连接超时（毫秒）</label>
+              <input id="portScanTimeout" class="text-input" type="number" min="200" max="8000" step="100" value="1500" />
+            </div>
+            <div class="field">
+              <label for="portScanPingTimeout">ICMP Ping 超时（毫秒，勾选「先 Ping」时使用）</label>
+              <input id="portScanPingTimeout" class="text-input" type="number" min="200" max="10000" step="100" value="1200" />
+            </div>
+            <div class="field">
+              <label for="portScanConcurrency">并发 TCP 数（轻量建议 4～16）</label>
+              <input id="portScanConcurrency" class="text-input" type="number" min="1" max="32" step="1" value="8" />
+            </div>
+            <div class="field">
+              <label for="portScanStagger">任务间隔（毫秒，0 表示不延迟；略增可降低瞬时连接峰值）</label>
+              <input id="portScanStagger" class="text-input" type="number" min="0" max="500" step="10" value="25" />
+            </div>
+            <div class="row">
+              <label class="checkbox">
+                <input id="portScanPingFirst" type="checkbox" />
+                先 Ping 再扫（仅对 ICMP 可达主机做 TCP 探测）
+              </label>
+            </div>
+            <div class="row">
+              <label class="checkbox">
+                <input id="portScanExcludeNB" type="checkbox" checked />
+                跳过网络地址与广播地址
+              </label>
+            </div>
+            <div id="portScanMainActions" class="actions"></div>
+            <div class="hint">
+              轻量探测：单次 TCP 连接尝试、低并发、可设间隔；不发送应用层数据。请仅在<strong>已授权</strong>网络内使用。
+            </div>
+            <div id="portScanErrorLeft" class="error"></div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title sub-title-row">
+              <span>扫描结果</span>
+              <span id="portScanSummary" class="ping-summary"></span>
+            </h3>
+            <div class="field" style="margin-bottom:8px;">
+              <label for="portScanFilter">状态筛选</label>
+              <select id="portScanFilter" class="select" style="max-width:240px;">
+                <option value="all">全部</option>
+                <option value="open">仅开放</option>
+                <option value="closed">仅关闭</option>
+              </select>
+            </div>
+            <div id="portScanOutput" class="output"></div>
+            <div class="row" style="justify-content:space-between; margin-top:8px;">
+              <div class="row" style="margin:0;">
+                <label for="portScanPageSize" style="margin:0;">每页</label>
+                <select id="portScanPageSize" class="select" style="max-width:120px;">
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+              <div class="row" style="margin:0;">
+                <button id="portScanPrevPageBtn" class="mini-btn" type="button">上一页</button>
+                <span id="portScanPageInfo" class="hint" style="margin:0;">第 1 / 1 页</span>
+                <button id="portScanNextPageBtn" class="mini-btn" type="button">下一页</button>
+              </div>
+            </div>
+            <div id="portScanError" class="error"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-trace" class="tab-panel">
+        <h2 class="panel-title">路由追踪</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field">
+              <label for="traceTarget">目标（IPv4 / IPv6 / 域名）</label>
+              <input id="traceTarget" class="text-input" type="text" placeholder="例如：8.8.8.8 或 www.example.com" value="8.8.8.8" />
+            </div>
+            <div class="field">
+              <label for="traceMaxHops">最大跃点数</label>
+              <input id="traceMaxHops" class="text-input" type="number" min="1" max="128" step="1" value="30" />
+            </div>
+            <div class="field">
+              <label for="traceWaitMs">单跳等待超时（毫秒，Windows 对应 tracert -w）</label>
+              <input id="traceWaitMs" class="text-input" type="number" min="100" max="8000" step="100" value="4000" />
+            </div>
+            <div id="traceMainActions" class="actions"></div>
+            <div class="hint">
+              调用系统 <code>tracert</code> / <code>traceroute</code>，解析每跳 IP、三次探测延迟与丢包率。请仅在<strong>已授权</strong>网络内使用；完整过程可能持续数分钟。
+            </div>
+            <div id="traceErrorLeft" class="error"></div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title">追踪结果</h3>
+            <div id="traceOutput" class="output"></div>
+            <div id="traceError" class="error"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-dual" class="tab-panel">
+        <h2 class="panel-title">双栈对比（IPv4 vs IPv6）</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="sub-title">输入</h3>
+            <div class="field field-ipv4-oct-compact">
+              <label>IPv4 输入（四段式 + 掩码双显联动）</label>
+              <div id="dualIPv4Template"></div>
+            </div>
+            <div class="field">
+              <label for="dualIPv6">IPv6 网段/地址</label>
+              <input id="dualIPv6" class="text-input" type="text" placeholder="例如：2001:db8::/64" value="2001:db8::/64" />
+              <div id="dualIPv6SmartHint" class="hint smart-correct-hint" style="min-height:0;"></div>
+            </div>
+            <div class="row">
+              <label class="checkbox">
+                <input id="dualSubtractNB" type="checkbox" checked />
+                IPv4 主机数扣除网络/广播
+              </label>
+            </div>
+            <div id="dualMainActions" class="actions"></div>
+            <div id="dualError" class="error"></div>
+          </div>
+          <div class="card">
+            <h3 class="sub-title">对比结果</h3>
+            <div id="dualOutput" class="output"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-address-validate" class="tab-panel">
+        <h2 class="panel-title">地址验证与查询（离线）</h2>
+        <div class="grid-2">
+          <div class="card">
+            <div class="field field-ipv4-oct-compact">
+              <label>输入 IPv4 地址（四段式）</label>
+              <div id="addrIPv4Template"></div>
+            </div>
+            <div id="addrMainActions" class="actions"></div>
+
+            <div class="divider"></div>
+            <div class="field">
+              <label for="geoDbFile">加载离线归属库（可选，可重复加载）</label>
+              <input id="geoDbFile" type="file" accept=".json" />
+              <div class="hint">
+                归属库需要 JSON：[{ "prefix":"x.x.x.x/yy", "org":"...", "region":"...", "asn":"..." }...]。未加载或未命中时仅显示地址类型。
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="sub-title">结果</h3>
+            <div id="addrOutput" class="output"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <section class="history-bar">
+      <div class="history-head">
+        <div>
+          <div class="history-title">历史记录（最多 200 条）</div>
+          <div class="history-sub">点击记录可复用；支持导出/导入 JSON、删除与清空</div>
+        </div>
+        <div class="history-actions">
+          <button id="historyExportBtn" type="button" class="btn-pill-outline">导出历史</button>
+          <button id="historyImportBtn" type="button" class="btn-pill-outline">导入历史</button>
+          <input id="historyImportFile" type="file" accept=".json,application/json" style="display:none;" />
+          <button id="historyClearBtn" class="mini-btn mini-danger">清空</button>
+        </div>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+
+    <footer class="footer">
+      <div class="muted">
+        说明：本工具为离线计算，不会上传任何数据。
+      </div>
+    </footer>
+
+    <div id="helpModal" class="modal" style="display:none;">
+      <div class="modal-card">
+        <div class="modal-title">帮助文档 / FAQ</div>
+        <div class="modal-body" id="helpBody"></div>
+        <div class="modal-actions">
+          <button id="helpCloseBtn" class="mini-btn">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="noticeModal" class="modal" style="display:none;" role="alertdialog" aria-modal="true">
+      <div class="modal-card notice-modal-card">
+        <div id="noticeModalTitle" class="modal-title"></div>
+        <div id="noticeModalBody" class="modal-body"></div>
+        <div class="modal-actions">
+          <button id="noticeModalClose" type="button" class="primary">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="quickExportModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-label="选择导出格式">
+      <div class="modal-card notice-modal-card">
+        <div class="modal-title">导出当前历史记录</div>
+        <p class="hint" style="margin:0 0 12px;">请选择格式（对应顶部菜单 CSV / TXT / Excel）</p>
+        <div class="modal-actions" style="flex-wrap:wrap; justify-content:flex-start; gap:10px;">
+          <button type="button" id="quickExportCsv" class="btn-pill-outline">导出 CSV</button>
+          <button type="button" id="quickExportTxt" class="btn-pill-outline">导出 TXT</button>
+          <button type="button" id="quickExportExcelPick" class="btn-pill-outline">导出 Excel</button>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="quickExportClose" class="mini-btn">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="globalSearchModal" class="modal global-search-modal" style="display:none;" role="dialog" aria-modal="true" aria-label="全局搜索">
+      <div class="modal-card global-search-card">
+        <div class="modal-title">全局搜索 <span class="hint">Ctrl+F</span></div>
+        <input id="globalSearchInput" class="text-input" type="search" placeholder="搜索标签页名称、历史记录标题…" autocomplete="off" />
+        <div id="globalSearchResults" class="global-search-results"></div>
+        <div class="modal-actions">
+          <button type="button" id="globalSearchClose" class="mini-btn">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="appToast" class="app-toast" role="status" aria-live="polite" style="display:none;"></div>
+
+    <div id="localNetModal" class="modal" style="display:none;" aria-modal="true">
+      <div class="modal-card localnet-modal-card">
+        <div class="modal-title">本机网络信息</div>
+        <p class="hint" style="margin:0 0 10px;">
+          读取 Node 网卡与（Windows）网关/DNS；可点击「复制」复制单行，或使用下方「复制全部」。
+        </p>
+        <div id="localNetModalBody" class="modal-body localnet-modal-scroll"></div>
+        <div class="modal-actions">
+          <button id="localNetModalCopyAll" type="button" class="mini-btn">复制全部</button>
+          <button id="localNetModalRefresh" type="button" class="mini-btn">重新获取</button>
+          <button id="localNetModalClose" type="button" class="primary">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initUI } from "./app.js";
+      initUI();
+    </script>
+  </body>
+</html>
+
